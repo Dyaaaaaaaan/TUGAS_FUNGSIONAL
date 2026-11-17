@@ -1,18 +1,21 @@
 """Aplikasi 2: Klinik Jadwal Dokter."""
 from Library.fplib import (
     average, count_by, group_by, map_to, render_table, safe_int,
-    update_where, validate_non_empty, with_updated,
+    update_where, validate_all, validate_non_empty, validate_positive, with_updated,
 )
 
 
 def daftar_pasien(antrian, nama, umur_text, dokter):
     """Tambah pasien ke antrian; umur harus berupa angka."""
-    ok, err = validate_non_empty(nama, "Nama")
     umur = safe_int(umur_text)
-    if not ok:
-        return antrian, err
     if umur is None:
         return antrian, "Umur harus angka."
+    ok, err = validate_all(
+        validate_non_empty(nama, "Nama"),
+        validate_positive(umur, "Umur"),
+    )
+    if not ok:
+        return antrian, err
     pasien = {"nama": nama, "umur": umur, "dokter": dokter, "status": "menunggu"}
     return (*antrian, pasien), None
 
@@ -33,6 +36,8 @@ if __name__ == "__main__":
     antrian, _ = daftar_pasien(antrian, "Dimas", "58", "dr. Ayu")
     antrian, _ = daftar_pasien(antrian, "Lia", "21", "dr. Yoga")
     antrian, err = daftar_pasien(antrian, "Tono", "abc", "dr. Ayu")
+    print("Error:", err)
+    antrian, err = daftar_pasien(antrian, "Eko", "-5", "dr. Ayu")
     print("Error:", err)
 
     antrian = tandai_selesai(antrian, "Rina")

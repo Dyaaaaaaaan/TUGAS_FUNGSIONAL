@@ -11,6 +11,7 @@ Prinsip: fungsi murni, data immutable (tidak diubah, selalu menghasilkan data ba
 tanpa efek samping (input/output) di dalam library.
 """
 
+from functools import reduce
 from typing import Any, Callable, Iterable, Optional, Tuple
 
 Record = dict
@@ -42,10 +43,11 @@ def count_by(items: Iterable, predicate: Predicate = lambda _: True) -> int:
 
 def group_by(items: Iterable, key: str) -> dict:
     """Mengelompokkan record menjadi {nilai_field: tuple_record}."""
-    result: dict = {}
-    for r in items:
-        result[r[key]] = (*result.get(r[key], ()), r)
-    return result
+    return reduce(
+        lambda acc, r: {**acc, r[key]: (*acc.get(r[key], ()), r)},
+        items,
+        {},
+    )
 
 
 def sort_by(items: Iterable, key: str, reverse: bool = False) -> tuple:
@@ -86,7 +88,7 @@ def validate_non_empty(value: Any, field: str = "Field") -> Result:
 
 def validate_positive(value: float, field: str = "Nilai") -> Result:
     """Memastikan angka lebih dari nol."""
-    if value > 0:
+    if isinstance(value, (int, float)) and value > 0:
         return True, None
     return False, f"{field} harus lebih dari 0."
 
